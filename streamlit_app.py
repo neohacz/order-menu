@@ -67,7 +67,7 @@ if st.button("초기화"):
 
 # 데이터베이스에서 주문 불러오기
 try:
-    c.execute('SELECT id, family_name, menu_item, hot_or_iced, quantity FROM orders')
+    c.execute('SELECT rowid, family_name, menu_item, hot_or_iced, quantity FROM orders')
     rows = c.fetchall()
 except sqlite3.OperationalError as e:
     st.error(f"데이터베이스에서 데이터를 불러오는 중 오류가 발생했습니다: {e}")
