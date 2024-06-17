@@ -75,28 +75,31 @@ family_orders = {}
 orders = {}
 
 for row in rows:
-    order_id, family, menu, hot_or_iced, quantity = row
-    order = f"{hot_or_iced} {menu} {quantity}" if hot_or_iced != "N/A" else f"{menu} {quantity}"
-    
-    # 가족별 주문 저장
-    if family in orders:
-        orders[family].append((order_id, order))
-    else:
-        orders[family] = [(order_id, order)]
-    
-    # 메뉴별 주문 수량 합산
-    menu_key = f"{hot_or_iced} {menu}" if hot_or_iced != "N/A" else menu
-    if menu_key in menu_orders:
-        menu_orders[menu_key] += quantity
-    else:
-        menu_orders[menu_key] = quantity
-    
-    # 메뉴별 주문한 가족 리스트 작성
-    if menu_key in family_orders:
-        if family not in family_orders[menu_key]:
-            family_orders[menu_key].append(family)
-    else:
-        family_orders[menu_key] = [family]
+    try:
+        order_id, family, menu, hot_or_iced, quantity = row
+        order = f"{hot_or_iced} {menu} {quantity}" if hot_or_iced != "N/A" else f"{menu} {quantity}"
+        
+        # 가족별 주문 저장
+        if family in orders:
+            orders[family].append((order_id, order))
+        else:
+            orders[family] = [(order_id, order)]
+        
+        # 메뉴별 주문 수량 합산
+        menu_key = f"{hot_or_iced} {menu}" if hot_or_iced != "N/A" else menu
+        if menu_key in menu_orders:
+            menu_orders[menu_key] += quantity
+        else:
+            menu_orders[menu_key] = quantity
+        
+        # 메뉴별 주문한 가족 리스트 작성
+        if menu_key in family_orders:
+            if family not in family_orders[menu_key]:
+                family_orders[menu_key].append(family)
+        else:
+            family_orders[menu_key] = [family]
+    except ValueError as e:
+        st.error(f"데이터베이스에서 불러온 행의 구조가 예상과 다릅니다: {e}")
 
 st.header("취합된 주문 목록")
 for menu, quantity in menu_orders.items():
