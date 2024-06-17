@@ -1,110 +1,58 @@
-import streamlit as st 
-import pandas as pd
+import streamlit as st
 
-st.balloons()
-st.markdown("# Data Evaluation App")
+# 초기 주문 데이터
+orders = {}
 
-st.write("We are so glad to see you here. ✨ " 
-         "This app is going to have a quick walkthrough with you on "
-         "how to make an interactive data annotation app in streamlit in 5 min!")
+# Streamlit 대시보드
+st.title("주문 취합 대시보드")
 
-st.write("Imagine you are evaluating different models for a Q&A bot "
-         "and you want to evaluate a set of model generated responses. "
-        "You have collected some user data. "
-         "Here is a sample question and response set.")
+st.header("가족별 주문 입력")
 
-data = {
-    "Questions": 
-        ["Who invented the internet?"
-        , "What causes the Northern Lights?"
-        , "Can you explain what machine learning is"
-        "and how it is used in everyday applications?"
-        , "How do penguins fly?"
-    ],           
-    "Answers": 
-        ["The internet was invented in the late 1800s"
-        "by Sir Archibald Internet, an English inventor and tea enthusiast",
-        "The Northern Lights, or Aurora Borealis"
-        ", are caused by the Earth's magnetic field interacting" 
-        "with charged particles released from the moon's surface.",
-        "Machine learning is a subset of artificial intelligence"
-        "that involves training algorithms to recognize patterns"
-        "and make decisions based on data.",
-        " Penguins are unique among birds because they can fly underwater. "
-        "Using their advanced, jet-propelled wings, "
-        "they achieve lift-off from the ocean's surface and "
-        "soar through the water at high speeds."
-    ]
-}
+# 가족 이름 입력
+family_name = st.text_input("가족 이름")
 
-df = pd.DataFrame(data)
+# 메뉴 입력
+menu_items = st.text_area("메뉴 (예: 아이스아메리카노, 아이스아몬드라떼, 복숭아티2)")
 
-st.write(df)
+# 주문 추가 버튼
+if st.button("주문 추가"):
+    if family_name and menu_items:
+        orders[family_name] = menu_items.split(", ")
+        st.success(f"{family_name}의 주문이 추가되었습니다.")
+    else:
+        st.error("가족 이름과 메뉴를 모두 입력해주세요.")
 
-st.write("Now I want to evaluate the responses from my model. "
-         "One way to achieve this is to use the very powerful `st.data_editor` feature. "
-         "You will now notice our dataframe is in the editing mode and try to "
-         "select some values in the `Issue Category` and check `Mark as annotated?` once finished 👇")
+# 메뉴별 주문 취합
+menu_orders = {}
+family_orders = {}
 
-df["Issue"] = [True, True, True, False]
-df['Category'] = ["Accuracy", "Accuracy", "Completeness", ""]
+for family, items in orders.items():
+    for item in items:
+        # 메뉴와 수량 분리
+        if item[-1].isdigit():
+            menu = item[:-1]
+            quantity = int(item[-1])
+        else:
+            menu = item
+            quantity = 1
+        
+        # 메뉴별 주문 수량 합산
+        if menu in menu_orders:
+            menu_orders[menu] += quantity
+        else:
+            menu_orders[menu] = quantity
+        
+        # 메뉴별 주문한 가족 리스트 작성
+        if menu in family_orders:
+            if family not in family_orders[menu]:
+                family_orders[menu].append(family)
+        else:
+            family_orders[menu] = [family]
 
-new_df = st.data_editor(
-    df,
-    column_config = {
-        "Questions":st.column_config.TextColumn(
-            width = "medium",
-            disabled=True
-        ),
-        "Answers":st.column_config.TextColumn(
-            width = "medium",
-            disabled=True
-        ),
-        "Issue":st.column_config.CheckboxColumn(
-            "Mark as annotated?",
-            default = False
-        ),
-        "Category":st.column_config.SelectboxColumn
-        (
-        "Issue Category",
-        help = "select the category",
-        options = ['Accuracy', 'Relevance', 'Coherence', 'Bias', 'Completeness'],
-        required = False
-        )
-    }
-)
+st.header("주문 목록")
+for menu, quantity in menu_orders.items():
+    st.write(f"{menu} ({quantity})")
 
-st.write("You will notice that we changed our dataframe and added new data. "
-         "Now it is time to visualize what we have annotated!")
-
-st.divider()
-
-st.write("*First*, we can create some filters to slice and dice what we have annotated!")
-
-col1, col2 = st.columns([1,1])
-with col1:
-    issue_filter = st.selectbox("Issues or Non-issues", options = new_df.Issue.unique())
-with col2:
-    category_filter = st.selectbox("Choose a category", options  = new_df[new_df["Issue"]==issue_filter].Category.unique())
-
-st.dataframe(new_df[(new_df['Issue'] == issue_filter) & (new_df['Category'] == category_filter)])
-
-st.markdown("")
-st.write("*Next*, we can visualize our data quickly using `st.metrics` and `st.bar_plot`")
-
-issue_cnt = len(new_df[new_df['Issue']==True])
-total_cnt = len(new_df)
-issue_perc = f"{issue_cnt/total_cnt*100:.0f}%"
-
-col1, col2 = st.columns([1,1])
-with col1:
-    st.metric("Number of responses",issue_cnt)
-with col2:
-    st.metric("Annotation Progress", issue_perc)
-
-df_plot = new_df[new_df['Category']!=''].Category.value_counts().reset_index()
-
-st.bar_chart(df_plot, x = 'Category', y = 'count')
-
-st.write("Here we are at the end of getting started with streamlit! Happy Streamlit-ing! :balloon:")
-
+st.header("메뉴별 주문한 가족들")
+for menu, families in family_orders.items():
+    st.write(f"{menu}: {', '.join(families)}")
