@@ -66,10 +66,14 @@ for family, items in orders.items():
         else:
             family_orders[menu_key] = [family]
 
-st.header("주문 목록")
+st.header("취합된 주문 목록")
 for menu, quantity in menu_orders.items():
     st.write(f"{menu} ({quantity})")
 
 st.header("메뉴별 주문한 가족들")
 for menu, families in family_orders.items():
     st.write(f"{menu}: {', '.join(families)}")
+
+st.header("가족별 주문 목록")
+for family, items in orders.items():
+    st.write(f"{family}: {', '.join(items)}")
