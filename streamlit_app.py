@@ -119,7 +119,7 @@ for family, items in orders.items():
     for order_id, order in items:
         if st.button(f"삭제 {order}", key=f"delete_{order_id}"):
             # 데이터베이스에서 해당 주문 삭제
-            c.execute('DELETE FROM orders WHERE id = ?', (order_id,))
+            c.execute('DELETE FROM orders WHERE rowid = ?', (order_id,))
             conn.commit()
             st.experimental_rerun()  # 페이지를 새로고침하여 변경사항 반영
 
