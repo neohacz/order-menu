@@ -66,14 +66,17 @@ if st.button("초기화"):
     st.success("모든 주문이 초기화되었습니다.")
 
 # 데이터베이스에서 주문 불러오기
-c.execute('SELECT id, family_name, menu_item, hot_or_iced, quantity FROM orders')
+c.execute('SELECT * FROM orders')
 rows = c.fetchall()
 
 # 메뉴별 주문 취합
 menu_orders = {}
 family_orders = {}
 orders = {}
-
+for row in rows:
+    st.header("test")
+    st.write(row)
+    
 for row in rows:
     try:
         order_id, family, menu_item, hot_or_iced, quantity = row
