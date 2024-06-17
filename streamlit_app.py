@@ -58,13 +58,6 @@ if st.button("주문 추가"):
     else:
         st.error("가족 이름과 메뉴를 모두 선택해주세요.")
 
-# 초기화 버튼
-if st.button("초기화"):
-    # 데이터베이스에서 모든 주문 삭제
-    c.execute('DELETE FROM orders')
-    conn.commit()
-    st.success("모든 주문이 초기화되었습니다.")
-
 # 데이터베이스에서 주문 불러오기
 try:
     c.execute('SELECT rowid, family_name, menu_item, hot_or_iced, quantity FROM orders')
@@ -122,6 +115,14 @@ for family, items in orders.items():
             c.execute('DELETE FROM orders WHERE rowid = ?', (order_id,))
             conn.commit()
             st.experimental_rerun()  # 페이지를 새로고침하여 변경사항 반영
+
+st.header("모든 주문을 삭제합니다.")
+# 초기화 버튼
+if st.button("초기화"):
+    # 데이터베이스에서 모든 주문 삭제
+    c.execute('DELETE FROM orders')
+    conn.commit()
+    st.success("모든 주문이 초기화되었습니다.")
 
 # 데이터베이스 연결 종료
 conn.close()
