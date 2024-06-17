@@ -8,6 +8,7 @@ c = conn.cursor()
 # 테이블 생성
 c.execute('''
     CREATE TABLE IF NOT EXISTS orders (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
         family_name TEXT,
         menu_item TEXT,
         hot_or_iced TEXT,
@@ -35,8 +36,11 @@ menu_list = [
 # 메뉴 선택
 menu_item = st.selectbox("메뉴 선택", menu_list)
 
-# HOT/ICED 선택
-hot_or_iced = st.selectbox("HOT/ICED 선택", ["HOT", "ICED"])
+# HOT/ICED 선택 (쿠키가 아닌 경우에만)
+if menu_item != "쿠키":
+    hot_or_iced = st.selectbox("HOT/ICED 선택", ["HOT", "ICED"])
+else:
+    hot_or_iced = "N/A"  # 쿠키의 경우 HOT/ICED 선택 없음
 
 # 수량 선택
 quantity = st.selectbox("수량 선택", [1, 2, 3, 4])
@@ -54,6 +58,13 @@ if st.button("주문 추가"):
     else:
         st.error("가족 이름과 메뉴를 모두 선택해주세요.")
 
+# 초기화 버튼
+if st.button("초기화"):
+    # 데이터베이스에서 모든 주문 삭제
+    c.execute('DELETE FROM orders')
+    conn.commit()
+    st.success("모든 주문이 초기화되었습니다.")
+
 # 데이터베이스에서 주문 불러오기
 c.execute('SELECT * FROM orders')
 rows = c.fetchall()
@@ -64,17 +75,17 @@ family_orders = {}
 orders = {}
 
 for row in rows:
-    family, menu, hot_or_iced, quantity = row
-    order = f"{hot_or_iced} {menu} {quantity}"
+    order_id, family, menu, hot_or_iced, quantity = row
+    order = f"{hot_or_iced} {menu} {quantity}" if hot_or_iced != "N/A" else f"{menu} {quantity}"
     
     # 가족별 주문 저장
     if family in orders:
-        orders[family].append(order)
+        orders[family].append((order_id, order))
     else:
-        orders[family] = [order]
+        orders[family] = [(order_id, order)]
     
     # 메뉴별 주문 수량 합산
-    menu_key = f"{hot_or_iced} {menu}"
+    menu_key = f"{hot_or_iced} {menu}" if hot_or_iced != "N/A" else menu
     if menu_key in menu_orders:
         menu_orders[menu_key] += quantity
     else:
@@ -97,7 +108,13 @@ for menu, families in family_orders.items():
 
 st.header("가족별 주문 목록")
 for family, items in orders.items():
-    st.write(f"{family}: {', '.join(items)}")
+    st.write(f"{family}:")
+    for order_id, order in items:
+        if st.button(f"삭제 {order}", key=f"delete_{order_id}"):
+            # 데이터베이스에서 해당 주문 삭제
+            c.execute('DELETE FROM orders WHERE id = ?', (order_id,))
+            conn.commit()
+            st.experimental_rerun()  # 페이지를 새로고침하여 변경사항 반영
 
 # 데이터베이스 연결 종료
 conn.close()
