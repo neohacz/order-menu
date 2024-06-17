@@ -8,7 +8,7 @@ c = conn.cursor()
 # 테이블 생성
 c.execute('''
     CREATE TABLE IF NOT EXISTS orders (
-        id INTEGER PRIMARY KEY INTEGER AUTO_INCREMENT,
+        id INTEGER PRIMARY KEY AUTO_INCREMENT,
         family_name TEXT,
         menu_item TEXT,
         hot_or_iced TEXT,
