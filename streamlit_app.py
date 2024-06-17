@@ -66,20 +66,21 @@ if st.button("초기화"):
     st.success("모든 주문이 초기화되었습니다.")
 
 # 데이터베이스에서 주문 불러오기
-c.execute('SELECT id, family_name, menu_item, hot_or_iced, quantity FROM orders')
-rows = c.fetchall()
+try:
+    c.execute('SELECT id, family_name, menu_item, hot_or_iced, quantity FROM orders')
+    rows = c.fetchall()
+except sqlite3.OperationalError as e:
+    st.error(f"데이터베이스에서 데이터를 불러오는 중 오류가 발생했습니다: {e}")
+    rows = []
 
 # 메뉴별 주문 취합
 menu_orders = {}
 family_orders = {}
 orders = {}
-for row in rows:
-    st.header("test")
-    st.write(row)
-    
+
 for row in rows:
     try:
-        order_id, family, menu_item, hot_or_iced, quantity = row
+        order_id, family, menu, hot_or_iced, quantity = row
         order = f"{hot_or_iced} {menu} {quantity}" if hot_or_iced != "N/A" else f"{menu} {quantity}"
         
         # 가족별 주문 저장
