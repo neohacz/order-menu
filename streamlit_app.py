@@ -131,19 +131,23 @@ for family, items in orders.items():
                 conn.execute('COMMIT')
 
 st.header("모든 주문을 삭제합니다.")
-# 초기화 버튼
-if st.button("초기화"):
-    try:
-        conn.execute('BEGIN TRANSACTION')
-        # 데이터베이스에서 모든 주문 삭제
-        c.execute('DELETE FROM orders')
-        conn.commit()
-        st.success("모든 주문이 초기화되었습니다.")
-    except sqlite3.Error as e:
-        conn.rollback()
-        st.error(f"데이터베이스에서 주문을 초기화하는 중 오류가 발생했습니다: {e}")
-    finally:
-        conn.execute('COMMIT')
+# 비밀번호 입력 필드
+password = st.text_input("관리자 비밀번호를 입력하세요:", type="password")
+if password == "admin_password":
+    if st.button("초기화"):
+        try:
+            conn.execute('BEGIN TRANSACTION')
+            # 데이터베이스에서 모든 주문 삭제
+            c.execute('DELETE FROM orders')
+            conn.commit()
+            st.success("모든 주문이 초기화되었습니다.")
+        except sqlite3.Error as e:
+            conn.rollback()
+            st.error(f"데이터베이스에서 주문을 초기화하는 중 오류가 발생했습니다: {e}")
+        finally:
+            conn.execute('COMMIT')
+else:
+    st.warning("비밀번호가 올바르지 않습니다. 초기화를 실행할 수 없습니다.")
 
 # 데이터베이스 연결 종료
 conn.close()
