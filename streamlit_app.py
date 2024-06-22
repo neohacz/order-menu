@@ -133,8 +133,8 @@ if password == "1234":
             # 데이터베이스에서 모든 주문 삭제
             c.execute('DELETE FROM orders')
             conn.commit()
+            st.experimental_rerun()  # 페이지를 새로고침하여 변경사항 반영      
             st.success("모든 주문이 초기화되었습니다.")
-            st.experimental_rerun()  # 페이지를 새로고침하여 변경사항 반영            
         except sqlite3.Error as e:
             conn.rollback()
             st.error(f"데이터베이스에서 주문을 초기화하는 중 오류가 발생했습니다: {e}")
