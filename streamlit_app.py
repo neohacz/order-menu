@@ -47,14 +47,21 @@ quantity = st.selectbox("수량 선택", [1, 2, 3, 4])
 
 # 주문 추가 버튼
 if st.button("주문 추가"):
-    if family_name and menu_item != "none":
-        # 데이터베이스에 주문 추가
-        c.execute('''
-            INSERT INTO orders (family_name, menu_item, hot_or_iced, quantity)
-            VALUES (?, ?, ?, ?)
-        ''', (family_name, menu_item, hot_or_iced, quantity))
-        conn.commit()
-        st.success(f"{family_name}의 주문이 추가되었습니다.")
+    if family_name and menu_item != "쿠키":
+        try:
+            conn.execute('BEGIN TRANSACTION')
+            # 데이터베이스에 주문 추가
+            c.execute('''
+                INSERT INTO orders (family_name, menu_item, hot_or_iced, quantity)
+                VALUES (?, ?, ?, ?)
+            ''', (family_name, menu_item, hot_or_iced, quantity))
+            conn.commit()
+            st.success(f"{family_name}의 주문이 추가되었습니다.")
+        except sqlite3.Error as e:
+            conn.rollback()
+            st.error(f"데이터베이스에 주문을 추가하는 중 오류가 발생했습니다: {e}")
+        finally:
+            conn.execute('COMMIT')
     else:
         st.error("가족 이름과 메뉴를 모두 선택해주세요.")
 
@@ -111,18 +118,32 @@ for family, items in orders.items():
     st.write(f"{family}:")
     for order_id, order in items:
         if st.button(f"삭제 {order}", key=f"delete_{order_id}"):
-            # 데이터베이스에서 해당 주문 삭제
-            c.execute('DELETE FROM orders WHERE rowid = ?', (order_id,))
-            conn.commit()
-            st.experimental_rerun()  # 페이지를 새로고침하여 변경사항 반영
+            try:
+                conn.execute('BEGIN TRANSACTION')
+                # 데이터베이스에서 해당 주문 삭제
+                c.execute('DELETE FROM orders WHERE rowid = ?', (order_id,))
+                conn.commit()
+                st.experimental_rerun()  # 페이지를 새로고침하여 변경사항 반영
+            except sqlite3.Error as e:
+                conn.rollback()
+                st.error(f"데이터베이스에서 주문을 삭제하는 중 오류가 발생했습니다: {e}")
+            finally:
+                conn.execute('COMMIT')
 
 st.header("모든 주문을 삭제합니다.")
 # 초기화 버튼
 if st.button("초기화"):
-    # 데이터베이스에서 모든 주문 삭제
-    c.execute('DELETE FROM orders')
-    conn.commit()
-    st.success("모든 주문이 초기화되었습니다.")
+    try:
+        conn.execute('BEGIN TRANSACTION')
+        # 데이터베이스에서 모든 주문 삭제
+        c.execute('DELETE FROM orders')
+        conn.commit()
+        st.success("모든 주문이 초기화되었습니다.")
+    except sqlite3.Error as e:
+        conn.rollback()
+        st.error(f"데이터베이스에서 주문을 초기화하는 중 오류가 발생했습니다: {e}")
+    finally:
+        conn.execute('COMMIT')
 
 # 데이터베이스 연결 종료
 conn.close()
