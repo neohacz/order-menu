@@ -47,7 +47,7 @@ quantity = st.selectbox("수량 선택", [1, 2, 3, 4])
 
 # 주문 추가 버튼
 if st.button("주문 추가"):
-    if family_name and menu_item != "쿠키":
+    if family_name and menu_item != "none":
         try:
             # 데이터베이스에 주문 추가
             c.execute('''
