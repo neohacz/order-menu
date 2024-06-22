@@ -47,7 +47,7 @@ quantity = st.selectbox("수량 선택", [1, 2, 3, 4])
 
 # 주문 추가 버튼
 if st.button("주문 추가"):
-    if family_name and menu_item != "none":
+    if family_name:
         try:
             # 데이터베이스에 주문 추가
             c.execute('''
@@ -60,7 +60,7 @@ if st.button("주문 추가"):
             conn.rollback()
             st.error(f"데이터베이스에 주문을 추가하는 중 오류가 발생했습니다: {e}")
     else:
-        st.error("가족 이름과 메뉴를 모두 선택해주세요.")
+        st.error("가족 이름을 입력해주세요.")
 
 # 데이터베이스에서 주문 불러오기
 try:
@@ -127,7 +127,7 @@ for family, items in orders.items():
 st.header("모든 주문을 삭제합니다.")
 # 비밀번호 입력 필드
 password = st.text_input("관리자 비밀번호를 입력하세요:", type="password")
-if password == "admin_password":
+if password == "1234":
     if st.button("초기화"):
         try:
             # 데이터베이스에서 모든 주문 삭제
@@ -138,7 +138,7 @@ if password == "admin_password":
             conn.rollback()
             st.error(f"데이터베이스에서 주문을 초기화하는 중 오류가 발생했습니다: {e}")
 else:
-    st.warning("비밀번호을 입력하면 초기화를 할 수 있습니다.")
+    st.warning("비밀번호를 입력하면 초기화를 할 수 있습니다.")
 
 # 데이터베이스 연결 종료
 conn.close()
