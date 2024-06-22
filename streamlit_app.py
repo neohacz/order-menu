@@ -2,7 +2,7 @@ import streamlit as st
 import sqlite3
 
 # 데이터베이스 초기화
-conn = sqlite3.connect('orders.db')
+conn = sqlite3.connect('orders.db', check_same_thread=False)  # check_same_thread=False 설정 추가
 c = conn.cursor()
 
 # 테이블 생성
@@ -49,7 +49,6 @@ quantity = st.selectbox("수량 선택", [1, 2, 3, 4])
 if st.button("주문 추가"):
     if family_name and menu_item != "쿠키":
         try:
-            conn.execute('BEGIN TRANSACTION')
             # 데이터베이스에 주문 추가
             c.execute('''
                 INSERT INTO orders (family_name, menu_item, hot_or_iced, quantity)
@@ -60,8 +59,6 @@ if st.button("주문 추가"):
         except sqlite3.Error as e:
             conn.rollback()
             st.error(f"데이터베이스에 주문을 추가하는 중 오류가 발생했습니다: {e}")
-        finally:
-            conn.execute('COMMIT')
     else:
         st.error("가족 이름과 메뉴를 모두 선택해주세요.")
 
@@ -119,7 +116,6 @@ for family, items in orders.items():
     for order_id, order in items:
         if st.button(f"삭제 {order}", key=f"delete_{order_id}"):
             try:
-                conn.execute('BEGIN TRANSACTION')
                 # 데이터베이스에서 해당 주문 삭제
                 c.execute('DELETE FROM orders WHERE rowid = ?', (order_id,))
                 conn.commit()
@@ -127,8 +123,6 @@ for family, items in orders.items():
             except sqlite3.Error as e:
                 conn.rollback()
                 st.error(f"데이터베이스에서 주문을 삭제하는 중 오류가 발생했습니다: {e}")
-            finally:
-                conn.execute('COMMIT')
 
 st.header("모든 주문을 삭제합니다.")
 # 비밀번호 입력 필드
@@ -136,7 +130,6 @@ password = st.text_input("관리자 비밀번호를 입력하세요:", type="pas
 if password == "admin_password":
     if st.button("초기화"):
         try:
-            conn.execute('BEGIN TRANSACTION')
             # 데이터베이스에서 모든 주문 삭제
             c.execute('DELETE FROM orders')
             conn.commit()
@@ -144,10 +137,8 @@ if password == "admin_password":
         except sqlite3.Error as e:
             conn.rollback()
             st.error(f"데이터베이스에서 주문을 초기화하는 중 오류가 발생했습니다: {e}")
-        finally:
-            conn.execute('COMMIT')
 else:
-    st.warning("비밀번호가 올바르지 않습니다. 초기화를 실행할 수 없습니다.")
+    st.warning("비밀번호을 입력하면 초기화를 할 수 있습니다.")
 
 # 데이터베이스 연결 종료
 conn.close()
