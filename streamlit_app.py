@@ -11,6 +11,7 @@ c.execute('''
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         family_name TEXT,
         menu_item TEXT,
+        caffeine_type TEXT,
         hot_or_iced TEXT,
         quantity INTEGER
     )
@@ -36,6 +37,11 @@ menu_list = [
 # 메뉴 선택
 menu_item = st.selectbox("메뉴 선택", menu_list)
 
+# 디카페인/카페인 선택 (해당 메뉴에만)
+caffeine_type = "N/A"
+if menu_item in ["롱블랙 아메리카노", "플랫화이트", "카페 라떼", "모카", "바닐라 라떼", "카라멜 마끼야또", "피치 에스프레소"]:
+    caffeine_type = st.selectbox("디카페인/카페인 선택", ["디카페인", "카페인"])
+
 # HOT/ICED 선택 (쿠키가 아닌 경우에만)
 if menu_item != "쿠키":
     hot_or_iced = st.selectbox("HOT/ICED 선택", ["HOT", "ICED"])
@@ -51,9 +57,9 @@ if st.button("주문 추가"):
         try:
             # 데이터베이스에 주문 추가
             c.execute('''
-                INSERT INTO orders (family_name, menu_item, hot_or_iced, quantity)
-                VALUES (?, ?, ?, ?)
-            ''', (family_name, menu_item, hot_or_iced, quantity))
+                INSERT INTO orders (family_name, menu_item, caffeine_type, hot_or_iced, quantity)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (family_name, menu_item, caffeine_type, hot_or_iced, quantity))
             conn.commit()
             st.success(f"{family_name}의 주문이 추가되었습니다.")
         except sqlite3.Error as e:
@@ -64,7 +70,7 @@ if st.button("주문 추가"):
 
 # 데이터베이스에서 주문 불러오기
 try:
-    c.execute('SELECT rowid, family_name, menu_item, hot_or_iced, quantity FROM orders')
+    c.execute('SELECT rowid, family_name, menu_item, caffeine_type, hot_or_iced, quantity FROM orders')
     rows = c.fetchall()
 except sqlite3.OperationalError as e:
     st.error(f"데이터베이스에서 데이터를 불러오는 중 오류가 발생했습니다: {e}")
@@ -77,8 +83,8 @@ orders = {}
 
 for row in rows:
     try:
-        order_id, family, menu, hot_or_iced, quantity = row
-        order = f"{hot_or_iced} {menu} {quantity}" if hot_or_iced != "N/A" else f"{menu} {quantity}"
+        order_id, family, menu, caffeine_type, hot_or_iced, quantity = row
+        order = f"{caffeine_type} {hot_or_iced} {menu} {quantity}" if caffeine_type != "N/A" else f"{hot_or_iced} {menu} {quantity}" if hot_or_iced != "N/A" else f"{menu} {quantity}"
         
         # 가족별 주문 저장
         if family in orders:
@@ -87,7 +93,7 @@ for row in rows:
             orders[family] = [(order_id, order)]
         
         # 메뉴별 주문 수량 합산
-        menu_key = f"{hot_or_iced} {menu}" if hot_or_iced != "N/A" else menu
+        menu_key = f"{caffeine_type} {hot_or_iced} {menu}" if caffeine_type != "N/A" else f"{hot_or_iced} {menu}" if hot_or_iced != "N/A" else menu
         if menu_key in menu_orders:
             menu_orders[menu_key] += quantity
         else:
