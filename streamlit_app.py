@@ -40,7 +40,7 @@ menu_item = st.selectbox("메뉴 선택", menu_list)
 # 디카페인/카페인 선택 (해당 메뉴에만)
 caffeine_type = "N/A"
 if menu_item in ["롱블랙 아메리카노", "플랫화이트", "카페 라떼", "모카", "바닐라 라떼", "카라멜 마끼야또", "피치 에스프레소"]:
-    caffeine_type = st.selectbox("디카페인/카페인 선택", ["디카페인", "카페인"])
+    caffeine_type = st.selectbox("카페인/디카페인 선택", ["카페인", "디카페인"])
 
 # HOT/ICED 선택 (쿠키가 아닌 경우에만)
 if menu_item != "쿠키":
