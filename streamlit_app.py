@@ -1,5 +1,6 @@
 import streamlit as st
 import sqlite3
+from PIL import Image
 
 # 데이터베이스 초기화
 conn = sqlite3.connect('orders.db', check_same_thread=False)  # check_same_thread=False 설정 추가
@@ -20,6 +21,19 @@ conn.commit()
 
 # Streamlit 대시보드
 st.title("주문 취합 대시보드")
+
+# 메뉴 사진 보기를 위한 상태 저장 변수
+if "show_menu_image" not in st.session_state:
+    st.session_state.show_menu_image = False
+
+# 버튼 클릭 시 상태 변경
+if st.button("메뉴 사진 보기"):
+    st.session_state.show_menu_image = not st.session_state.show_menu_image
+
+# 상태에 따라 이미지 표시 또는 숨기기
+if st.session_state.show_menu_image:
+    image = Image.open('menu.jpg')  # 메뉴 전체 사진 파일 경로
+    st.image(image, caption="메뉴 사진")
 
 st.header("가족별 주문 입력")
 
